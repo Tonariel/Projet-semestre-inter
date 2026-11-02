@@ -36,6 +36,55 @@ class GestionnaireProches:
         for proche in proches_db:
             print(f"ID: {proche.id} | Courriel: {proche.courriel} | Tel: {proche.numero}")
 
+    def modifier(self):
+        # 1. Afficher la liste pour voir les ID disponibles
+        self.afficher()
+        
+        # S'il n'y a personne, on arrête la fonction ici
+        if self.session.query(Proche).count() == 0:
+            return
+
+        # 2. Demander l'ID de manière sécurisée (évite que le programme plante si on tape une lettre)
+        try:
+            choix_id = int(input("\nEntrez l'ID du proche à modifier : "))
+        except ValueError:
+            print("Erreur : Veuillez entrer un numéro valide.")
+            return
+
+        # 3. Chercher l'objet dans la base de données
+        proche = self.session.query(Proche).filter(Proche.id == choix_id).first()
+        
+        if not proche:
+            print("ID introuvable dans la base de données.")
+            return
+
+        print(f"\n--- Modification du proche #{proche.id} ---")
+        print("(Appuyez sur Entrée sans rien écrire pour conserver la valeur actuelle)")
+
+        # 4. Mise à jour des champs avec conservation de l'ancienne valeur si l'entrée est vide
+        nouveau_courriel = input(f"Courriel [{proche.courriel}] : ")
+        if nouveau_courriel:
+            proche.courriel = nouveau_courriel
+
+        nouveau_numero = input(f"Numéro [{proche.numero}] : ")
+        if nouveau_numero:
+            proche.numero = nouveau_numero
+
+        nouveau_type = input(f"Type notification [{proche.type_notification}] : ")
+        if nouveau_type:
+            proche.type_notification = nouveau_type
+
+        nouvelle_priorite = input(f"Priorité [{proche.priorite}] : ")
+        if nouvelle_priorite:
+            try:
+                proche.priorite = int(nouvelle_priorite)
+            except ValueError:
+                print("Priorité invalide ignorée. L'ancienne priorité est conservée.")
+
+        # 5. Validation de la transaction
+        self.session.commit()
+        print("Proche modifié avec succès !")
+
     def supprimer(self):
         self.afficher_tous()
         choix_id = int(input("\nEntrez l'ID du proche à supprimer : "))
