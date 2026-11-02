@@ -1,4 +1,4 @@
-from db import session, Proche
+from DB import session, Proche
 
 class GestionnaireProches:
     """Classe responsable de toute la logique métier et des opérations sur les proches."""
