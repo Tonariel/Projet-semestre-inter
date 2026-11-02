@@ -1,15 +1,17 @@
 # Classe qui représente un proche aidant
 class Proche:
 
-    def __init__(self, nom, prenom, numero):
+    def __init__(self, nom, prenom, courriel, numero):
         self.nom = nom
         self.prenom = prenom
+        self.courriel = courriel
         self.numero = numero
 
     # Afficher les informations du proche
     def afficher(self):
         print(f"Nom : {self.nom}")
         print(f"Prénom : {self.prenom}")
+        print(f"Courriel : {self.courriel}")
         print(f"Numéro : {self.numero}")
 
 
@@ -22,9 +24,10 @@ def creer_proche():
     nom = input("Nom : ")
     prenom = input("Prénom : ")
     numero = input("Numéro de téléphone : ")
+    courriel = input("Courriel : ")
 
     # Création d'un objet Proche
-    nouveau_proche = Proche(nom, prenom, numero)
+    nouveau_proche = Proche(nom, prenom, courriel, numero)
 
     # Ajout de l'objet dans la liste
     proches.append(nouveau_proche)
