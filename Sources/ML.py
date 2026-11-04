@@ -125,3 +125,48 @@ def executer_modele_ocsvm(df_train, df_test, colonnes_features):
     df_resultats['score_anomalie'] = -modele_svm.decision_function(X_test_scaled)
 
     return df_resultats, modele_svm
+
+
+def comparer_hyperparametres_ocsvm(df_train, df_test, colonnes_features, colonne_verite):
+    """
+    Teste différentes valeurs de 'nu' pour le One-Class SVM et affiche les performances.
+    """
+    valeurs_nu = [0.001, 0.01, 0.05, 0.1]
+    
+    print("=== COMPARAISON DES HYPERPARAMÈTRES (One-Class SVM) ===")
+    for nu_val in valeurs_nu:
+        # On utilise une variante de ta fonction S7 qui accepte le paramètre nu
+        modele_svm = OneClassSVM(kernel='rbf', gamma='scale', nu=nu_val)
+        
+        # (Ici on suppose que tu as fait ton StandardScaler avant)
+        modele_svm.fit(df_train[colonnes_features])
+        predictions = modele_svm.predict(df_test[colonnes_features])
+        
+        # Conversion -1/1 en 1/0
+        y_pred = np.where(predictions == -1, 1, 0)
+        y_vrai = df_test[colonne_verite]
+        
+        # Calcul rapide des Faux Positifs
+        tn, fp, fn, tp = confusion_matrix(y_vrai, y_pred).ravel()
+        nb_jours = max(1, (df_test['timestamp'].max() - df_test['timestamp'].min()).days)
+        
+        print(f"Test avec nu={nu_val} -> F1-Score: {f1_score(y_vrai, y_pred, zero_division=0):.2f} | Faux Positifs/Jour: {fp/nb_jours:.1f}")
+
+
+
+def analyser_erreurs(df_resultats, colonne_verite='anomalie_reelle'):
+    """
+    Isole les lignes où le modèle s'est trompé pour analyse métier.
+    """
+    # FAUX POSITIFS : L'IA a crié au loup (prediction = 1), mais c'était normal (verite = 0)
+    faux_positifs = df_resultats[(df_resultats['prediction_ml'] == 1) & (df_resultats[colonne_verite] == 0)]
+    
+    # FAUX NÉGATIFS : L'IA a raté l'accident (prediction = 0), alors que c'était anormal (verite = 1)
+    faux_negatifs = df_resultats[(df_resultats['prediction_ml'] == 0) & (df_resultats[colonne_verite] == 1)]
+    
+    print(f"\nAnalyse des erreurs :")
+    print(f"- Nombre de Faux Positifs à analyser : {len(faux_positifs)}")
+    print(f"- Nombre de Faux Négatifs (Dangers ratés) : {len(faux_negatifs)}")
+    
+    # Retourne les tableaux pour que tu puisses les afficher (ex: print(faux_positifs.head()))
+    return faux_positifs, faux_negatifs
